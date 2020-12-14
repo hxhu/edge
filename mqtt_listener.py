@@ -2,6 +2,7 @@
 # 百度云服务器 Iot-Hub
 # -*- coding: utf-8 -*-
 import paho.mqtt.client as mqtt
+from message_distribution import distributor
 import json
 import time
 
@@ -16,11 +17,13 @@ def on_connect(client, userdata, flags, rc):
 
 
 def on_message(client, userdata, msg):
-    print("topic:" + msg.topic + " message:" + str(msg.payload.decode('utf-8')))
+    # print("topic:" + msg.topic + " message:" + str(msg.payload.decode('utf-8')))
+    distributor(msg)
 
 
 def on_subscribe(client, userdata, mid, granted_qos):
-    print("On Subscribed: qos = %d" % granted_qos)
+    i = 0
+    # print("On Subscribed: qos = %d" % granted_qos)
 
 
 def on_disconnect(client, userdata, rc):

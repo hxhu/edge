@@ -35,4 +35,10 @@ if __name__ == "__main__":
         "message": "视频信息简介",
         "data": "N1334901317365141504"
     }
-    sender(data)
+    heartbeat = {
+        "deviceId": "1234567890",
+        "message": "heartbeat", # type
+        "data": "1",             # status
+        "timestamp": int(time.time())
+    }
+    sender(heartbeat)
