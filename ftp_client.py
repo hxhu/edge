@@ -54,6 +54,28 @@ def pushModel(data):
 
     return result
 
+
+def fileModel(data):
+    print("========== download file ===========")
+    print(datetime.datetime.now())
+    source = data.split(";")
+    sourceList = source[0].split("/")
+    
+    remotepath = "/"
+    for i in range(1,len(sourceList)-1):
+        remotepath += sourceList[i] + "/"
+    localpath = "./file/"
+    filename = sourceList[(len(sourceList)-1)]
+    
+    result = False
+    ftp = ftpconnect('47.94.44.231', "ftpdir", '123456')
+    result = downloadfile(ftp, remotepath, localpath, filename)
+    ftp.quit()
+    print("=====================================")
+
+    return result
+
+
 if __name__ == "__main__":
     data = "/home/ftpdir/models/yolov3.weights;N1334859111304531968"
     pushModel(data)

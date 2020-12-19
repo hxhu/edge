@@ -3,18 +3,20 @@
 import json
 import time
 from pydash import get, set_
-from ftp_client import pushModel
+from ftp_client import pushModel, fileModel
 from mqtt_sender import sender
 
 # 消息例子
 # {"command":"pushModel;points","data":"/home/ftpdir/models/yolov3.weights;N1334859111304531968","target":["N1334896073990213632","1234567890"],"timestamp":1607944867}
+
+
 def distributor(msg):
     flag = True
     msg_json = json.loads(str(msg.payload.decode('utf-8')))
 
     # 排除之前的消息
     now_time = int(time.time())
-    get_time = int(get(msg_json, "timestamp", 0))
+    get_time = (int(get(msg_json, "timestamp", 0)) / 1000) if (int(get(msg_json, "timestamp", 0)) > 1000000000000) else int(get(msg_json, "timestamp", 0))
     if (now_time - get_time) >= 600 or (now_time - get_time) < 0:
         flag = False
 
@@ -33,19 +35,48 @@ def distributor(msg):
 
         # 模型推送
         if get(command_split, '0', "") == "pushModel":
-            # 指定推送
-            if command_split[1] == "points":
-                if pushModel(get(msg_json, "data", "")):
-                    send_data = {}
+            model_push(command_split, data_split, msg_json, device_id)
 
-                    set_(send_data, "deviceId", device_id)
-                    set_(send_data, "message", "modelUpdate") # type 说明是模型更新了
-                    set_(send_data, "data", get(data_split, "1", "")) # modelId
-                    set_(send_data, "timestamp", int(time.time()))
+        # 文件推送
+        if get(command_split, '0', "") == "pushFile":
+            file_push(command_split, data_split, msg_json, device_id)
 
-                    # {"deviceId": "1234567890", "message": "modelUpdate", "data": "N1334859111304531968", "timestamp": 1607966540}
-                    sender(send_data)
-            # 广播推送
-            elif command_split[1] == "all":
-                if pushModel(get(msg_json, "data", "")):
-                    i = 0
+
+# 模型推送
+def model_push(command_split, data_split, msg_json, device_id):
+    # 指定推送
+    if command_split[1] == "points":
+        if pushModel(get(msg_json, "data", "")):
+            send_data = {}
+
+            set_(send_data, "deviceId", device_id)
+            set_(send_data, "message", "modelUpdate")  # type 说明是模型更新了
+            set_(send_data, "data", get(data_split, "1", ""))  # modelId
+            set_(send_data, "timestamp", int(time.time()))
+
+            # {"deviceId": "1234567890", "message": "modelUpdate", "data": "N1334859111304531968", "timestamp": 1607966540}
+            sender(send_data)
+    # 广播推送
+    elif command_split[1] == "all":
+        if pushModel(get(msg_json, "data", "")):
+            i = 0
+
+
+# 文件推送
+def file_push(command_split, data_split, msg_json, device_id):
+    # 指定推送
+    if command_split[1] == "points":
+        if fileModel(get(msg_json, "data", "")):
+            send_data = {}
+
+            set_(send_data, "deviceId", device_id)
+            set_(send_data, "message", "fileUpdate")  # type 说明是模型更新了
+            set_(send_data, "data", get(data_split, "1", ""))  # fileId
+            set_(send_data, "timestamp", int(time.time()))
+
+            # {"deviceId": "1234567890", "message": "modelUpdate", "data": "N1334859111304531968", "timestamp": 1607966540}
+            sender(send_data)
+    # 广播推送
+    elif command_split[1] == "all":
+        if pushModel(get(msg_json, "data", "")):
+            i = 0

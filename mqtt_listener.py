@@ -32,7 +32,6 @@ def on_disconnect(client, userdata, rc):
 
 
 def listener():
-    # param = json.dumps(data)
     client = mqtt.Client(client_id)
     client.username_pw_set("p8e0buw/bupt", "QBeYiSPj7p1ZoPZb")
     client.on_connect = on_connect
