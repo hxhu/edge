@@ -27,6 +27,7 @@ def sender(data):
     client.connect(HOST, PORT, 60)
     print("发送消息:" + param)
     client.publish("up", payload=param, qos=0)     # 发送消息
+    client.disconnect() # 必须要关闭
 
 
 if __name__ == "__main__":
