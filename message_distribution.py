@@ -6,6 +6,7 @@ import threading
 from pydash import get, set_
 from ftp_client import pushModel, fileModel
 from mqtt_sender import sender
+from device_info import total_load
 
 # 消息例子
 # {"command":"pushModel;points","data":"/home/ftpdir/models/yolov3.weights;N1334859111304531968","target":["N1334896073990213632","1234567890"],"timestamp":1607944867,"extra":{"pattern":"I"}} //I(立即) F(闲时) S(指定)
@@ -70,8 +71,6 @@ def model_push(**kwargs):
     device_id = get(kwargs, "device_id")
     extra = get(kwargs, "extra")
 
-    
-
     # 指定推送
     if command_split[1] == "points":
         if pushModel(get(msg_json, "data", "")):
@@ -129,11 +128,21 @@ def file_push(**kwargs):
 def waiting(extra):
     print(extra)
     pattern = get(extra, "pattern", "F")
-    if pattern == "I":
+    if pattern == "I":    # 立即更新
         print("立即更新模型")
-    elif pattern == "F":
+    elif pattern == "F":  # 闲时更新
         print("等待闲时更新...")
-    elif pattern == "S":
+        '''
+        <闲时定义> 
+            CPU使用率: 0.7
+            内存使用率
+            负载信息
+            当前网速
+        '''
+        while True:
+            if total_load():
+                break
+    elif pattern == "S":  # 指定时间更新
         print("指定更新时间..." + time.strftime("%Y--%m--%d %H:%M:%S", time.localtime(get(extra, "data", int(time.time())))))
         
         while True:
